@@ -55,11 +55,13 @@ func JoinLobby(c *gin.Context) {
 	requestBody, readError := ioutil.ReadAll(body)
 	if readError != nil {
 		c.JSON(400, gin.H{"error": readError.Error()})
+		return
 	}
 	req := &JoinLobbyRequest{}
 	err := json.Unmarshal(requestBody, req)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
+		return
 	}
 	lobbyId := c.Param("lobbyId")
 	gameState := state.FindGame(lobbyId)
@@ -68,6 +70,7 @@ func JoinLobby(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"error": "lobby not found!",
 		})
+		return
 	}
 	gameState.Lobby.Players = append(gameState.Lobby.Players, req.PlayerId)
 	gameState.Playable = true
@@ -79,11 +82,13 @@ func MakeMove(c *gin.Context) {
 	requestBody, readError := ioutil.ReadAll(body)
 	if readError != nil {
 		c.JSON(400, gin.H{"error": readError.Error()})
+		return
 	}
 	req := &MakeMoveRequest{}
 	err := json.Unmarshal(requestBody, req)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
+		return
 	}
 	lobbyId := c.Param("lobbyId")
 	gameState := state.FindGame(lobbyId)
@@ -92,16 +97,35 @@ func MakeMove(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"error": "lobby not found!",
 		})
+		return
 	}
-	res := MakeStateMove(gameState, req.TileLocation, gameState.Board.NextToPlay)
+	if req.PlayerId != gameState.Board.NextToPlay {
+		c.JSON(400, gin.H{
+			"error": "Not your move!",
+		})
+		return
+	}
+	if !gameState.Playable {
+		c.JSON(400, gin.H{
+			"error": "Game not playable!",
+		})
+		return
+	}
+	res := MakeStateMove(gameState, req.TileLocation, req.PlayerId)
 	if !res {
 		c.JSON(400, gin.H{
 			"error": "invalid move",
 		})
+		return
 	}
 
 	winner := CheckWinner(gameState)
 	gameState.Winner = winner
+	if winner != "null" {
+		gameState.Playable = false
+	}
+
+	gameState.Board.NextToPlay = FindOtherPlayerName(gameState, req.PlayerId)
 
 	c.JSON(200, gameState)
 }

@@ -1,7 +1,8 @@
 package main
 
 type MakeMoveRequest struct {
-	TileLocation int `json:"tileLocation"`
+	PlayerId     string `json:"playerId"`
+	TileLocation int    `json:"tileLocation"`
 }
 
 type CreateLobbyRequest struct {
