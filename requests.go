@@ -1,17 +1,13 @@
 package main
 
 type MakeMoveRequest struct {
-}
-
-type GameStateResponse struct {
+	TileLocation int `json:"tileLocation"`
 }
 
 type CreateLobbyRequest struct {
 	PlayerId string `json:"playerId"`
 }
 
-type CreateLobbyResponse struct {
-}
-
 type JoinLobbyRequest struct {
+	PlayerId string `json:"playerId"`
 }
