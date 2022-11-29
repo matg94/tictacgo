@@ -38,10 +38,11 @@ func CreateLobby(c *gin.Context) {
 	)
 }
 
-// func GetGameState(c *gin.Context) {
-// 	lobbyId := c.Param("lobbyId")
-
-// }
+func GetGameState(c *gin.Context) {
+	lobbyId := c.Param("lobbyId")
+	gameState := state.FindGame(lobbyId)
+	c.JSON(200, gameState)
+}
 
 func main() {
 	router := gin.Default()
@@ -51,7 +52,7 @@ func main() {
 	}
 	router.GET("/hello", Hello)
 	router.POST("/createLobby", CreateLobby)
-	// router.GET("/gamestate/:lobbyId", GetGameState)
+	router.GET("/gamestate/:lobbyId", GetGameState)
 	err := router.Run()
 	if err != nil {
 		log.Fatalf("failed to start server: %s", err)
